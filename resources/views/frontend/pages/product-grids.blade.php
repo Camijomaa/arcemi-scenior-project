@@ -84,31 +84,7 @@
 
                                     </div>
                                     <!--/ End Shop By Price -->
-                                <!-- Single Widget -->
-                                <div class="single-widget recent-post">
-                                    <h3 class="title">Recent post</h3>
-                                    {{-- {{dd($recent_products)}} --}}
-                                    @foreach($recent_products as $product)
-                                        <!-- Single Post -->
-                                        @php
-                                            $photo=explode(',',$product->photo);
-                                        @endphp
-                                        <div class="single-post first">
-                                            <div class="image">
-                                                <img src="{{$photo[0]}}" alt="{{$photo[0]}}">
-                                            </div>
-                                            <div class="content">
-                                                <h5><a href="{{route('product-detail',$product->slug)}}">{{$product->title}}</a></h5>
-                                                @php
-                                                    $org=($product->price-($product->price*$product->discount)/100);
-                                                @endphp
-                                                <p class="price"><del class="text-muted">${{number_format($product->price,2)}}</del>   ${{number_format($org,2)}}  </p>
-
-                                            </div>
-                                        </div>
-                                        <!-- End Single Post -->
-                                    @endforeach
-                                </div>
+                         
                                 <!--/ End Single Widget -->
                                 <!-- Single Widget -->
                                 <div class="single-widget category">
@@ -171,8 +147,8 @@
                                                     @php
                                                         $photo=explode(',',$product->photo);
                                                     @endphp
-                                                    <img class="default-img" src="{{$photo[0]}}" alt="{{$photo[0]}}">
-                                                    <img class="hover-img" src="{{$photo[0]}}" alt="{{$photo[0]}}">
+                                                    <img class="default-img" src="{{$photo[0]}}" alt="{{$photo[0]}}"  style="width: 200px; height: 200px; object-fit: cover;">
+                                                    <img class="hover-img" src="{{$photo[0]}}" alt="{{$photo[0]}}"  style="width: 200px; height: 200px; object-fit: cover;">
                                                     @if($product->discount)
                                                                 <span class="price-dec">{{$product->discount}} % Off</span>
                                                     @endif
@@ -242,7 +218,7 @@
                                                     @endphp
                                                     @foreach($photo as $data)
                                                         <div class="single-slider">
-                                                            <img src="{{$data}}" alt="{{$data}}">
+                                                            <img src="{{$data}}" alt="{{$data}}"  style="width: 200px; height: 200px; object-fit: cover;">
                                                         </div>
                                                     @endforeach
                                                 </div>

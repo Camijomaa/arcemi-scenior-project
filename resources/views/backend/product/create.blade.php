@@ -77,10 +77,14 @@
           <label for="size">Size</label>
           <select name="size[]" class="form-control selectpicker"  multiple data-live-search="true">
               <option value="">--Select any size--</option>
-              <option value="S">Small (S)</option>
-              <option value="M">Medium (M)</option>
-              <option value="L">Large (L)</option>
-              <option value="XL">Extra Large (XL)</option>
+              <option value="60*60cm">60*60 cm</option>
+              <option value="60*120cm">60*120 cm</option>
+
+              <option value="1Liter">1 Liter</option>
+              <option value="2Liter">2 Liter</option>
+
+              <option value="1kg">1 kg</option>
+              <option value="2kg">2 kg</option>
           </select>
         </div>
 

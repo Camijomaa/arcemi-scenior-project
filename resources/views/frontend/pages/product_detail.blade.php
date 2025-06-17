@@ -109,7 +109,7 @@
 															// dd($sizes);
 														@endphp
 														@foreach($sizes as $size)
-														<li><a href="#" class="one">{{$size}}</a></li>
+														<li><p><a href="#" class="one">{{$size}}</a></P></li>
 														@endforeach
 													</ul>
 												</div>

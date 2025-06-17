@@ -6,8 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\Brand;
-use App\Models\ProductSize;
-use App\Models\CategorySize;
+
 use Illuminate\Support\Str;
 
 class ProductController extends Controller
@@ -30,10 +29,9 @@ class ProductController extends Controller
      */
     public function create()
     {
-        $brands = Brand::all();
+        $brands = Brand::get();
         $categories = Category::where('is_parent', 1)->get();
-        $available_sizes = CategorySize::all();
-        return view('backend.product.create', compact('categories', 'brands', 'available_sizes'));
+        return view('backend.product.create', compact('categories', 'brands'));
     }
 
     /**
@@ -49,6 +47,7 @@ class ProductController extends Controller
             'summary' => 'required|string',
             'description' => 'nullable|string',
             'photo' => 'required|string',
+            'size' => 'nullable',
             'stock' => 'required|numeric',
             'cat_id' => 'required|exists:categories,id',
             'brand_id' => 'nullable|exists:brands,id',
@@ -58,21 +57,28 @@ class ProductController extends Controller
             'condition' => 'required|in:default,new,hot',
             'price' => 'required|numeric',
             'discount' => 'nullable|numeric',
-            'size' => 'nullable|array',
         ]);
 
-        $validatedData['slug'] = generateUniqueSlug($request->title, Product::class);
+        $slug = generateUniqueSlug($request->title, Product::class);
+        $validatedData['slug'] = $slug;
         $validatedData['is_featured'] = $request->input('is_featured', 0);
+
+        if ($request->has('size')) {
+            $validatedData['size'] = implode(',', $request->input('size'));
+        } else {
+            $validatedData['size'] = '';
+        }
 
         $product = Product::create($validatedData);
 
-        if ($request->has('size')) {
-            foreach ($request->input('size') as $size) {
-                $product->sizes()->create(['size' => $size]);
-            }
-        }
+        $message = $product
+            ? 'Product Successfully added'
+            : 'Please try again!!';
 
-        return redirect()->route('product.index')->with('success', 'Product added successfully');
+        return redirect()->route('product.index')->with(
+            $product ? 'success' : 'error',
+            $message
+        );
     }
 
     /**
@@ -94,12 +100,12 @@ class ProductController extends Controller
      */
     public function edit($id)
     {
-        $brands = Brand::all();
+        $brands = Brand::get();
         $product = Product::findOrFail($id);
         $categories = Category::where('is_parent', 1)->get();
-        $available_sizes = CategorySize::all();
+        $items = Product::where('id', $id)->get();
 
-        return view('backend.product.edit', compact('product', 'brands', 'categories', 'available_sizes'));
+        return view('backend.product.edit', compact('product', 'brands', 'categories', 'items'));
     }
 
     /**
@@ -118,7 +124,7 @@ class ProductController extends Controller
             'summary' => 'required|string',
             'description' => 'nullable|string',
             'photo' => 'required|string',
-            'size' => 'nullable|array',
+            'size' => 'nullable',
             'stock' => 'required|numeric',
             'cat_id' => 'required|exists:categories,id',
             'child_cat_id' => 'nullable|exists:categories,id',
@@ -132,18 +138,22 @@ class ProductController extends Controller
 
         $validatedData['is_featured'] = $request->input('is_featured', 0);
 
-        $product->update($validatedData);
-
-        // Delete old sizes
-        $product->sizes()->delete();
-
         if ($request->has('size')) {
-            foreach ($request->input('size') as $size) {
-                $product->sizes()->create(['size' => $size]);
-            }
+            $validatedData['size'] = implode(',', $request->input('size'));
+        } else {
+            $validatedData['size'] = '';
         }
 
-        return redirect()->route('product.index')->with('success', 'Product updated successfully');
+        $status = $product->update($validatedData);
+
+        $message = $status
+            ? 'Product Successfully updated'
+            : 'Please try again!!';
+
+        return redirect()->route('product.index')->with(
+            $status ? 'success' : 'error',
+            $message
+        );
     }
 
     /**
