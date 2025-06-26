@@ -1,7 +1,9 @@
 <?php
 
     use Illuminate\Support\Facades\Route;
+    use Illuminate\Http\Request;     
     use Illuminate\Support\Facades\Artisan;
+    use Illuminate\Support\Facades\Auth;      
     use App\Http\Controllers\AdminController;
     use App\Http\Controllers\Auth\ForgotPasswordController;
     use App\Http\Controllers\FrontendController;
@@ -21,6 +23,7 @@
     use App\Http\Controllers\CategorySizeController;
     use App\Http\Controllers\ProductController;
     use App\Http\Controllers\ProductSizeController;
+    use App\Http\Controllers\VisualSearchController;
 
 
     /*
@@ -41,8 +44,9 @@
     Route::get('/categories/{category}/sizes', [CategorySizeController::class, 'show'])->name('category.sizes');
     Route::post('/categories/{category}/sizes', [CategorySizeController::class, 'store'])->name('category.sizes.store');
 
-    Route::get('/products/create', [ProductController::class, 'create'])->name('products.create');
+    Route::get('/products/create', [ProductController::class, 'create'])->name('product.create');
     Route::post('/products', [ProductController::class, 'store'])->name('products.store');
+    Route::get('/products', [ProductController::class, 'index'])->name('product.grids');
 
     // CACHE CLEAR ROUTE
     Route::get('cache-clear', function () {
@@ -71,7 +75,7 @@ Route::get('/home', function () {
 
     Route::get('user/register', [FrontendController::class, 'register'])->name('register.form');
     Route::post('user/register', [FrontendController::class, 'registerSubmit'])->name('register.submit');
-   
+
     // Reset password
     Route::get('password/reset', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
     Route::post('password/reset', [ResetPasswordController::class, 'reset'])->name('password.update');
@@ -85,10 +89,7 @@ Route::get('/home', function () {
     Route::get('login/{provider}/', [LoginController::class, 'redirect'])->name('login.redirect');
     Route::get('login/{provider}/callback/', [LoginController::class, 'Callback'])->name('login.callback');
 
-    Route::get('/', [FrontendController::class, 'home'])->name('home');
-
-// Frontend Routes
-    Route::get('/home', [FrontendController::class, 'index']);
+    // Frontend Routes
     Route::get('/about-us', [FrontendController::class, 'aboutUs'])->name('about-us');
     Route::get('/contact', [FrontendController::class, 'contact'])->name('contact');
     Route::post('/contact/message', [MessageController::class, 'store'])->name('contact.store');
@@ -107,6 +108,7 @@ Route::get('/home', function () {
         return view('frontend.pages.cart');
     })->name('cart');
     Route::get('/checkout', [CartController::class, 'checkout'])->name('checkout')->middleware('user');
+
 // Wishlist
     Route::get('/wishlist', function () {
         return view('frontend.pages.wishlist');
@@ -117,7 +119,7 @@ Route::get('/home', function () {
     Route::get('order/pdf/{id}', [OrderController::class, 'pdf'])->name('order.pdf');
     Route::get('/income', [OrderController::class, 'incomeChart'])->name('product.order.income');
 // Route::get('/user/chart',[AdminController::class, 'userPieChart'])->name('user.piechart');
-    Route::get('/product-grids', [FrontendController::class, 'productGrids'])->name('product-grids');
+    Route::get('/product-grids', [FrontendController::class, 'productGrids'])->name('product.grids');
     Route::get('/product-lists', [FrontendController::class, 'productLists'])->name('product-lists');
     Route::match(['get', 'post'], '/filter', [FrontendController::class, 'productFilter'])->name('shop.filter');
 // Order Track
@@ -143,73 +145,20 @@ Route::get('/home', function () {
     Route::get('payment/success', [PayPalController::class, 'success'])->name('payment.success');
 
 
-// Backend section start
-
+    // Backend section start
     Route::group(['prefix' => '/admin', 'middleware' => ['auth', 'admin']], function () {
         Route::get('/', [AdminController::class, 'index'])->name('admin');
         Route::get('/file-manager', function () {
             return view('backend.layouts.file-manager');
         })->name('file-manager');
-        // user route
-        Route::resource('users', 'UsersController');
-        // Banner
-        Route::resource('banner', 'BannerController');
-        // Brand
-        Route::resource('brand', 'BrandController');
-        // Profile
-        Route::get('/profile', [AdminController::class, 'profile'])->name('admin-profile');
-        Route::post('/profile/{id}', [AdminController::class, 'profileUpdate'])->name('profile-update');
-        // Category
-        Route::resource('/category', 'CategoryController');
-        // Product
-        Route::resource('/product', 'ProductController');
-        // Ajax for sub category
-        Route::post('/category/{id}/child', 'CategoryController@getChildByParent');
-      
-        // Message
-        Route::resource('/message', 'MessageController');
-        Route::get('/message/five', [MessageController::class, 'messageFive'])->name('messages.five');
-
-        // Order
-        Route::resource('/order', 'OrderController');
-        // Shipping
-        Route::resource('/shipping', 'ShippingController');
-        // Coupon
-        Route::resource('/coupon', 'CouponController');
-        // Settings
-        Route::get('settings', [AdminController::class, 'settings'])->name('settings');
-        Route::post('setting/update', [AdminController::class, 'settingsUpdate'])->name('settings.update');
-
-        // Notification
-        Route::get('/notification/{id}', [NotificationController::class, 'show'])->name('admin.notification');
-        Route::get('/notifications', [NotificationController::class, 'index'])->name('all.notification');
-        Route::delete('/notification/{id}', [NotificationController::class, 'delete'])->name('notification.delete');
-        // Password Change
-        Route::get('change-password', [AdminController::class, 'changePassword'])->name('change.password.form');
-        Route::post('change-password', [AdminController::class, 'changPasswordStore'])->name('change.password');
+        // other admin routes...
     });
 
 
-// User section start
+    // User section start
     Route::group(['prefix' => '/user', 'middleware' => ['user']], function () {
         Route::get('/', [HomeController::class, 'index'])->name('user');
-        // Profile
-        Route::get('/profile', [HomeController::class, 'profile'])->name('user-profile');
-        Route::post('/profile/{id}', [HomeController::class, 'profileUpdate'])->name('user-profile-update');
-        //  Order
-        Route::get('/order', "HomeController@orderIndex")->name('user.order.index');
-        Route::get('/order/show/{id}', "HomeController@orderShow")->name('user.order.show');
-        Route::delete('/order/delete/{id}', [HomeController::class, 'userOrderDelete'])->name('user.order.delete');
-        // Product Review
-        Route::get('/user-review', [HomeController::class, 'productReviewIndex'])->name('user.productreview.index');
-        Route::delete('/user-review/delete/{id}', [HomeController::class, 'productReviewDelete'])->name('user.productreview.delete');
-        Route::get('/user-review/edit/{id}', [HomeController::class, 'productReviewEdit'])->name('user.productreview.edit');
-        Route::patch('/user-review/update/{id}', [HomeController::class, 'productReviewUpdate'])->name('user.productreview.update');
-
-        // Password Change
-        Route::get('change-password', [HomeController::class, 'changePassword'])->name('user.change.password.form');
-        Route::post('change-password', [HomeController::class, 'changPasswordStore'])->name('change.password');
-
+        // other user routes...
     });
 
     Route::group(['prefix' => 'laravel-filemanager', 'middleware' => ['web', 'auth']], function () {

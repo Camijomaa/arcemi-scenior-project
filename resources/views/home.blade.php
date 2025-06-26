@@ -74,8 +74,58 @@
   </div>
 </div>
 
+<!-- Visual Search Section -->
+<div class="container mt-5">
+  <h2>Search Products by Image</h2>
+  <input type="file" id="homeImageUpload" class="form-control my-3" />
+  <button class="btn btn-primary mb-3" onclick="searchByImage('homeImageUpload', 'homeResults')">Search</button>
+  <div id="homeResults" class="d-flex flex-wrap gap-3"></div>
+</div>
+
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
+<script>
+async function searchByImage(inputId, resultsDivId) {
+  const input = document.getElementById(inputId);
+  if (input.files.length === 0) {
+    alert("Please select an image");
+    return;
+  }
+  const file = input.files[0];
+  const formData = new FormData();
+  formData.append('image', file);
+
+  try {
+    const response = await fetch('http://127.0.0.1:5000/visual-search', {
+      method: 'POST',
+      body: formData
+    });
+    if (!response.ok) throw new Error('API error');
+    const suggestions = await response.json();
+
+    const resultsDiv = document.getElementById(resultsDivId);
+    resultsDiv.innerHTML = '';
+    suggestions.forEach(filename => {
+      const img = document.createElement('img');
+      img.src = `/static/products/${filename}`; // Adjust path to your actual product images
+      img.alt = filename;
+      img.style.width = '150px';
+      img.style.cursor = 'pointer';
+      resultsDiv.appendChild(img);
+    });
+  } catch (err) {
+    alert('Failed to get suggestions: ' + err.message);
+  }
+}
+</script>
+
 </body>
+<a href="{{ route('cache.clear') }}" class="btn btn-warning">Clear Cache</a>
+@if(session('success'))
+    <div class="alert alert-success">
+        {{ session('success') }}
+    </div>
+@endif
+
 </html>
