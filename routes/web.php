@@ -1,6 +1,7 @@
 <?php
 
-    use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\BannerController;
+use Illuminate\Support\Facades\Route;
     use Illuminate\Http\Request;     
     use Illuminate\Support\Facades\Artisan;
     use Illuminate\Support\Facades\Auth;      
@@ -90,6 +91,8 @@ Route::get('/home', function () {
 
     // Frontend Routes
     Route::get('/about-us', [FrontendController::class, 'aboutUs'])->name('about-us');
+    Route::get('/banners', [BannerController::class, 'index'])->name('banner.index');
+    Route::post('/banners/create', [BannerController::class, 'create'])->name('banner.create');
     Route::get('/contact', [FrontendController::class, 'contact'])->name('contact');
     Route::post('/contact/message', [MessageController::class, 'store'])->name('contact.store');
     Route::get('product-detail/{slug}', [FrontendController::class, 'productDetail'])->name('product-detail');
@@ -150,14 +153,63 @@ Route::get('/home', function () {
         Route::get('/file-manager', function () {
             return view('backend.layouts.file-manager');
         })->name('file-manager');
-        // other admin routes...
+        Route::resource('users', 'UsersController');
+        // Banner
+        Route::resource('banner', 'BannerController');
+        // Brand
+        Route::resource('brand', 'BrandController');
+        // Profile
+        Route::get('/profile', [AdminController::class, 'profile'])->name('admin-profile');
+        Route::post('/profile/{id}', [AdminController::class, 'profileUpdate'])->name('profile-update');
+        // Category
+        Route::resource('/category', 'CategoryController');
+        // Product
+        Route::resource('/product', 'ProductController');
+        // Ajax for sub category
+        Route::post('/category/{id}/child', 'CategoryController@getChildByParent');
+
+        // Message
+        Route::resource('/message', 'MessageController');
+        Route::get('/message/five', [MessageController::class, 'messageFive'])->name('messages.five');
+
+        // Order
+        Route::resource('/order', 'OrderController');
+        // Shipping
+        Route::resource('/shipping', 'ShippingController');
+        // Coupon
+        Route::resource('/coupon', 'CouponController');
+        // Settings
+        Route::get('settings', [AdminController::class, 'settings'])->name('settings');
+        Route::post('setting/update', [AdminController::class, 'settingsUpdate'])->name('settings.update');
+
+        // Notification
+        Route::get('/notification/{id}', [NotificationController::class, 'show'])->name('admin.notification');
+        Route::get('/notifications', [NotificationController::class, 'index'])->name('all.notification');
+        Route::delete('/notification/{id}', [NotificationController::class, 'delete'])->name('notification.delete');
+        // Password Change
+        Route::get('change-password', [AdminController::class, 'changePassword'])->name('change.password.form');
+        Route::post('change-password', [AdminController::class, 'changPasswordStore'])->name('change.password');
     });
 
 
     // User section start
     Route::group(['prefix' => '/user', 'middleware' => ['user']], function () {
         Route::get('/', [HomeController::class, 'index'])->name('user');
-        // other user routes...
+        Route::get('/profile', [HomeController::class, 'profile'])->name('user-profile');
+        Route::post('/profile/{id}', [HomeController::class, 'profileUpdate'])->name('user-profile-update');
+        //  Order
+        Route::get('/order', "HomeController@orderIndex")->name('user.order.index');
+        Route::get('/order/show/{id}', "HomeController@orderShow")->name('user.order.show');
+        Route::delete('/order/delete/{id}', [HomeController::class, 'userOrderDelete'])->name('user.order.delete');
+        // Product Review
+        Route::get('/user-review', [HomeController::class, 'productReviewIndex'])->name('user.productreview.index');
+        Route::delete('/user-review/delete/{id}', [HomeController::class, 'productReviewDelete'])->name('user.productreview.delete');
+        Route::get('/user-review/edit/{id}', [HomeController::class, 'productReviewEdit'])->name('user.productreview.edit');
+        Route::patch('/user-review/update/{id}', [HomeController::class, 'productReviewUpdate'])->name('user.productreview.update');
+
+        // Password Change
+        Route::get('change-password', [HomeController::class, 'changePassword'])->name('user.change.password.form');
+        Route::post('change-password', [HomeController::class, 'changPasswordStore'])->name('change.password');
     });
 
     Route::group(['prefix' => 'laravel-filemanager', 'middleware' => ['web', 'auth']], function () {
