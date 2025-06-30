@@ -16,6 +16,7 @@ class CartController extends Controller
     }
 
     public function addToCart(Request $request){
+        dd(auth()->user())
         // dd($request->all());
         if (empty($request->slug)) {
             request()->session()->flash('error','Invalid Products');

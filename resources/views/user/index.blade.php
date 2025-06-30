@@ -1,5 +1,4 @@
 @extends('user.layouts.master')
-@extends('backend.layouts.app')
 
 @section('main-content')
 <div class="container-fluid">
